@@ -1,0 +1,22 @@
+{
+  "name": "chatgpt-app",
+  "version": "1.0.0",
+  "description": "A simple GPT chat application",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "4.29.0",
+    "readline-sync": "1.4.10",
+    "socket.io": "4.7.4"
+  },
+  "keywords": [
+    "chat",
+    "gpt",
+    "nodejs"
+  ],
+  "author": "Team 6",
+  "license": "ISC"
+}
