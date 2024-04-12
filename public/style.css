@@ -85,6 +85,7 @@ submitbutton{
     flex-direction: column;
     width: 100%;
     min-height: 75%;
+    max-height: 85%;
     position: relative;
     border-radius: 14px;
     min-width: 0px;
@@ -98,6 +99,8 @@ submitbutton{
     -webkit-padding-end: 22px!important;
     padding-inline-end: 22px!important;
     padding-left: 22px!important;
+    padding-top: 10px;
+    padding-bottom: 10px;
     line-height: 24px;
     font-weight: 500;
 }
