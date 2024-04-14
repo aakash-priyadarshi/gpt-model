@@ -23,9 +23,11 @@ async function getResponse(message) {
 
   for await (const chunk of completion) {
     const [choice] = chunk.choices;
-    const { content } = choice.delta;
-    response += content;
+    if (choice.delta && choice.delta.content) {
+      response += choice.delta.content;
+    }
   }
+
 
   return response;
 }
