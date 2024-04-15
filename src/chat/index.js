@@ -1,6 +1,5 @@
 const { OpenAI } = require('openai');
-const pinecone = require('pinecone');  // Import the Pinecone package
-const { pipeline } = require('@xenova/transformers');  // Import the Transformers.js library
+const { Pinecone } = require('@pinecone-database/pinecone');
 require('dotenv').config();
 
 const openai = new OpenAI({
@@ -8,9 +7,10 @@ const openai = new OpenAI({
 });
 
 // Initialize the Pinecone client
-const pineconeClient = new pinecone.Client({
+const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY
 });
+const index = pc.index('group-project-ai');
 
 let counter = 0;  // Initialize a counter
 
@@ -37,17 +37,15 @@ async function getResponse(message) {
   }
 
   // Convert the response to a vector
-  const model = await pipeline('feature-extraction', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+  const transformers = await import('@xenova/transformers');
+  const model = await transformers.pipeline('feature-extraction', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
   const vector = await model(response);
 
   // Upsert the vector to Pinecone
-  await pineconeClient.upsertItems({
-    indexName: 'group-project-ai',  // Replace with the index name
-    items: [{
-      id: `item-${counter}`,  // Use the counter as the ID
-      vector: vector[0]
-    }]
-  });
+  await index.namespace('ns1').upsert([{
+    id: `item-${counter}`,  // Use the counter as the ID
+    values: vector[0]
+  }]);
 
   counter++;  // Increment the counter
 
@@ -56,14 +54,14 @@ async function getResponse(message) {
 
 async function getSimilarResponses(query) {
   // Convert the query to a vector
-  const model = await pipeline('feature-extraction', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+  const transformers = await import('@xenova/transformers');
+  const model = await transformers.pipeline('feature-extraction', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
   const vector = await model(query);
 
   // Query Pinecone for similar vectors
-  const result = await pineconeClient.query({
-    indexName: 'group-project-ai',
+  const result = await index.namespace('ns1').query({
     topK: 5,  // Number of similar vectors to retrieve
-    query: vector[0]
+    vector: vector[0]
   });
 
   // The result contains the IDs of the similar vectors
