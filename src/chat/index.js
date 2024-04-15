@@ -12,6 +12,8 @@ const pineconeClient = new pinecone.Client({
   apiKey: process.env.PINECONE_API_KEY
 });
 
+let counter = 0;  // Initialize a counter
+
 async function getResponse(message) {
   const config = {
     model: 'ft:davinci-002:liverpool:group-project:9E7LOTDF',
@@ -40,12 +42,14 @@ async function getResponse(message) {
 
   // Upsert the vector to Pinecone
   await pineconeClient.upsertItems({
-    indexName: 'your-index-name',  // Replace with your index name
+    indexName: 'group-project-ai',  // Replace with the index name
     items: [{
-      id: 'your-id',  // Replace with a unique ID for this item
+      id: `item-${counter}`,  // Use the counter as the ID
       vector: vector[0]
     }]
   });
+
+  counter++;  // Increment the counter
 
   return response;
 }
@@ -57,7 +61,7 @@ async function getSimilarResponses(query) {
 
   // Query Pinecone for similar vectors
   const result = await pineconeClient.query({
-    indexName: 'your-index-name',
+    indexName: 'group-project-ai',
     topK: 5,  // Number of similar vectors to retrieve
     query: vector[0]
   });
