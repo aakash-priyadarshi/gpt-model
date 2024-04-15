@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 async function getResponse(message) {
   const config = {
-    model: 'gpt-3.5-turbo',
+    model: 'ft:davinci-002:liverpool:group-project:9E7LOTDF',
     stream: true,
     messages: [
       {
