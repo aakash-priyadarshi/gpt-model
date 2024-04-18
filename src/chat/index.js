@@ -16,7 +16,7 @@ let counter = 0;  // Initialize a counter
 
 async function getResponse(message) {
   const config = {
-    model: 'ft:davinci-002:liverpool:group-project:9E7LOTDF',
+    model: 'gpt-3.5-turbo',
     stream: true,
     messages: [
       {
