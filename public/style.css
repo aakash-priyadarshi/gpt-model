@@ -1,145 +1,127 @@
-body {
+/* Overall background and full height */
+html, body {
+  height: 100%;
+  margin: 0;
   font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+}
+
+body {
+  background-image: url('path-to-your-background-image.jpg'); /* Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Chat container */
+.col-md-6 {
+  position: relative; /* Changed to relative */
+  height: 100vh; /* Full viewport height */
+  max-width: 600px;
+  margin: 0 auto; /* Centered in the viewport */
   display: flex;
-  justify-content: center;
-  height: 100vh;
-  background-color: #ccd0d8!important;
-  background-image: linear-gradient(180deg, #7e8c9c,  #ccd0d8)
+  flex-direction: column; /* Children stacked vertically */
 }
 
-ul.messages {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-ul.messages li {
-  padding: 5px 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  background-color: #fff;
-  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
-}
-
-li {
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-}
-
-form {
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  background-color: #fff;
-  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
-  border-radius: 14px;
-}
-
-input{
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
-}
-
-submitbutton{
-  margin-left: 5%;
-  padding: 10px;
-  padding-left: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-}
-
-  .mainBody {
-    width: 100%;
-    min-width: 0px;
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    position: relative;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    -ms-appearance: none;
-    appearance: none;
-    font-weight: 500;
-    height: 100%;
-    border: 1px solid;
-    background: inherit;
-    min-height: 54px;
-    padding: 15px 20px;
-    -webkit-margin-end: 10px;
-    margin-inline-end: 10px;
-  }
-
-  .chatbox{
-    padding: 20px;
-    display: flex;
-    -webkit-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    width: 100%;
-    min-height: 75%;
-    max-height: 85%;
-    position: relative;
-    border-radius: 14px;
-    min-width: 0px;
-    word-wrap: break-word;
-    background: #ffffff;
-    box-shadow: 14px 17px 40px 4px rgba(112, 144, 176, 0.08);
-    -webkit-background-clip: border-box;
-    background-clip: border-box;
-    -webkit-padding-start: 22px!important;
-    padding-inline-start: 22px!important;
-    -webkit-padding-end: 22px!important;
-    padding-inline-end: 22px!important;
-    padding-left: 22px!important;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    line-height: 24px;
-    font-weight: 500;
-}
-
-.TopLeftHeader{
+/* Header style */
+.page-header {
   text-align: center;
-  cursor: pointer;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  background: inherit;
-  border-radius: inherit;
-  font-size: 34px;
-  padding: 0px;
-  padding-bottom: 10px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-  'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  font: "Segoe UI",Arial,sans-serif;
+  font-size: 2rem;
+  color: #fff;
+  padding: 20px;
+  background: #007bff; /* Bootstrap primary color */
+}
+
+/* Chat messages styles */
+#messages {
+  overflow-y: auto;
+  flex-grow: 1; /* Messages container grows to fill available space */
+  padding: 10px;
+}
+
+/* Individual chat message */
+.chat_message {
+  max-width: 70%;
+  word-wrap: break-word;
+  margin-bottom: 10px;
+  padding: 10px;
+  position: relative; /* Needed for absolute positioning of buttons */
+  align-self: flex-end; /* Aligns user messages to the right */
+}
+
+/* User's message bubble */
+.user_output {
+  background-color: #007bff;
   color: white;
+  border-radius: 20px;
+  align-self: flex-end; /* Aligns user messages to the right */
+  margin-left: auto; /* Push the bubble to the right */
+}
+
+/* Bot's message bubble */
+.chatbot_output {
+  background-color: #f0f0f0;
+  color: black;
+  border-radius: 20px;
+  align-self: flex-start; /* Aligns bot messages to the left */
 }
 
 
-.navybgcolor{
-  background-color:#24388a;
+.user_output .fa-thumbs-up,
+.user_output .fa-thumbs-down {
+  right: -30px; /* Position icons to the right of user messages */
 }
 
-.chat_message{
-  border-radius: 10px;
-  padding: 16px 40px 16px 20px;
-  margin-bottom: 20px;
+.chatbot_output .fa-thumbs-up,
+.chatbot_output .fa-thumbs-down {
+  left: -30px; /* Position icons to the left of bot messages */
 }
 
-.user_output{
-  margin-left: 10%;
-  background-color: #84a4fc
+.fa-thumbs-up {
+  color: #28a745; /* Green color for thumbs up */
 }
 
-.chatbot_output{
-  margin-right: 10%;
-  background-color : #84a4fc
+.fa-thumbs-down {
+  color: #dc3545; /* Red color for thumbs down */
+}
+
+/* Input and Send button */
+.input-group {
+  padding: 15px;
+}
+
+.form-control {
+  border-top-left-radius: 15px !important; /* Important to override Bootstrap styles */
+  border-bottom-left-radius: 15px !important;
+}
+
+.btn-primary {
+  border-top-right-radius: 15px; /* Rounded border on the button */
+  border-bottom-right-radius: 15px;
+}
+
+/* Loading button state */
+.loading-button {
+  padding: 0 15px;
+  vertical-align: middle;
+  animation: loading-animation 2s infinite linear;
+}
+
+
+/* Simple loading animation */
+@keyframes loading-animation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.thumbs-icons i {
+  margin-left: 5px;
+  font-size: 1.2rem; /* Larger icons */
+}
+
+.liked, .fa-thumbs-up:hover {
+  color: #155524; /* Bootstrap success color for thumbs up */
+}
+
+.disliked, .fa-thumbs-down:hover {
+  color: #5e181f; /* Bootstrap danger color for thumbs down */
 }
