@@ -12,7 +12,7 @@ const openai = new OpenAI({
 const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
-const index = pc.index('group-project-ai');
+const index = pc.index('group-project-ai'); //index name for vector database.
 
 let counter = 0;
 
@@ -27,24 +27,39 @@ io.on('connection', (socket) => {
 
   socket.on('chat message', async (message) => {
     try {
-      const response = await getResponse(message);
+      // Search for similar past messages or topics
+      const similarResponses = await getSimilarResponses(message);
+      let context = '';
+  
+      if (similarResponses.length > 0) {
+        // If similar responses are found, use them as context for the GPT model
+        context = similarResponses.join('\n');
+      }
+      
+      const response = await getResponse(message, context);  // Pass the context to the GPT model
       socket.emit('chat message', response);
     } catch (error) {
       console.error('Error:', error);
       socket.emit('chat message', 'Error: An error occurred on the server.');
     }
   });
+  
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
 });
 
-async function getResponse(message) {
+// function to get response from the model
+async function getResponse(message, context = '') {  // Accept context as a parameter
   const config = {
     model: 'gpt-3.5-turbo',
     stream: true,
     messages: [
+      {
+        role: 'system',
+        content: context  // Use the context in the chat completion request
+      },
       {
         content: message,
         role: 'user',
@@ -96,24 +111,41 @@ async function getResponse(message) {
 }
 
 
-
 async function getSimilarResponses(query) {
   // Convert the query to a vector
   const transformers = await import('@xenova/transformers');
   const model = await transformers.pipeline('feature-extraction', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
-  const vector = await model(query);
+  const vectorTensor = await model(query);
 
-  // Query Pinecone for similar vectors
-  const result = await index.namespace('ns1').query({
-    topK: 5,  // Number of similar vectors to retrieve
-    vector: vector[0]
-  });
+  // Ensure that the vector is a simple array of floats
+  const vectorData = Array.from(vectorTensor.data);
 
-  // The result contains the IDs of the similar vectors
-  const similarResponses = result.ids;
+  // Check if vectorData is properly formatted and not empty
+  if (!vectorData || vectorData.length === 0) {
+    console.error("Failed to generate a valid vector from the input.");
+    return [];
+  }
 
-  return similarResponses;
+  try {
+    // Query Pinecone for similar vectors
+    const result = await index.namespace('ns1').query({
+      vector: vectorData,
+      topK: 5
+    });
+
+    // Check if the result is valid and contains IDs
+    if (result && result.ids && result.ids.length > 0) {
+      return result.ids;  // Return the IDs of similar vectors
+    } else {
+      console.error("No similar vectors found or error in querying.");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error querying Pinecone:", error);
+    return [];
+  }
 }
+
 
 module.exports = { getResponse, getSimilarResponses };
 
