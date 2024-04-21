@@ -9,11 +9,15 @@
 </head>
 <body>
   <div class="col-md-6">
-    <div class="page-header TopLeftHeader">Gpt-model</div>
+    <div class="page-header TopLeftHeader">GPT Model</div>
     <ul id="messages" class="overflow-auto chatbox bg-light bg-gradient" style="box-sizing: border-box;"></ul>
     <form id="chat-form">
       <div class="d-flex input-group">
-        <input id="m" autocomplete="off" class="form-control" placeholder="Query" />
+        <input type="file" id="file-input" hidden />
+        <label for="file-input" class="btn btn-outline-primary">
+          <i class="fa fa-paperclip"></i>
+        </label>
+        <input id="m" autocomplete="off" class="form-control" placeholder="Type a message..." />
         <button id="button" class="btn btn-primary" type="submit">Send</button>
       </div>
     </form>
@@ -21,22 +25,81 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-  <script src="https://kit.fontawesome.com/your-fontawesome-kit-code.js"></script> <!-- Make sure to replace with your actual kit code -->
+  <script src="https://kit.fontawesome.com/4ed26f18fb.js" crossorigin="anonymous"></script>
   <script>
     $(function () {
       var socket = io();
       $('#chat-form').submit(function (e) {
-        e.preventDefault();
-        var message = $('#m').val().trim();
+  e.preventDefault();
+  var fileInput = $('#file-input')[0];
+  if (fileInput.files.length > 0) {
+    // Handle file upload
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('socketId', socket.id); // Include the socket ID
+    uploadFile(formData);
+  } else {
+    // Send text message
+    var message = $('#m').val().trim();
+    sendMessage(message);
+  }
+});
 
-        if (message) {
-          $("#button").html("Loading").prop('disabled', true);
-          $('#messages').append($('<div class="chat_message user_output"><li>' + message + '</li></div>'));
-          scrollToBottom();
-          socket.emit('chat message', message);
-          $('#m').val('');
-        }
-      });
+function uploadFile(formData) {
+  // Show a loading message or spinner
+  $("#button").html("Uploading...").prop('disabled', true);
+  $('#messages').append($('<div class="chat_message user_output" id="uploading"><li>Uploading file...</li></div>'));
+  scrollToBottom();
+
+  $.ajax({
+    url: '/upload',
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(response) {
+      // Remove the uploading message
+      $('#uploading').remove();
+      
+      // If the server responds with the extracted text
+      if (response && response.text) {
+        // Show a confirmation message to the user
+        $('#messages').append($('<div class="chat_message user_output"><li>File uploaded successfully!</li></div>'));
+        scrollToBottom();
+        sendMessage(response.text); // Send the extracted text as a message
+      } else {
+        // If the response doesn't have text, something went wrong server-side
+        $('#messages').append($('<div class="chat_message user_output"><li>File uploaded but no text was extracted.</li></div>'));
+        scrollToBottom();
+      }
+      
+      $("#button").html("Send").prop('disabled', false);
+      $('#file-input').val(''); // Clear the file input
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Remove the uploading message
+      $('#uploading').remove();
+      
+      // Show an error message
+      $('#messages').append($('<div class="chat_message user_output"><li>File upload failed: ' + errorThrown + '</li></div>'));
+      scrollToBottom();
+      
+      $("#button").html("Send").prop('disabled', false);
+      console.error('File upload failed:', textStatus, errorThrown);
+      alert('File upload failed.');
+    }
+  });
+}
+
+function sendMessage(message) {
+  if (message) {
+    $("#button").html("Loading...").prop('disabled', true);
+    $('#messages').append($('<div class="chat_message user_output"><li>' + message + '</li></div>'));
+    scrollToBottom();
+    socket.emit('chat message', message);
+    $('#m').val('');
+  }
+}
 
       socket.on('chat message', function (msg) {
         if (msg) {

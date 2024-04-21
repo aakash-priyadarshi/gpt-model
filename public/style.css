@@ -6,7 +6,7 @@ html, body {
 }
 
 body {
-  background-image: url('path-to-your-background-image.jpg'); /* Replace with your image path */
+  background-image: url('img/img.jpg'); /* background image path */
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

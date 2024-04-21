@@ -1,8 +1,10 @@
 const express = require('express');
+const cors = require('cors');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { OpenAI } = require('openai');
 const { Pinecone } = require('@pinecone-database/pinecone');
+const { upload, extractText } = require('./fileHandler'); // Import the file handling module
 require('dotenv').config();
 
 const openai = new OpenAI({
@@ -12,48 +14,95 @@ const openai = new OpenAI({
 const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
-const index = pc.index('group-project-ai'); //index name for vector database.
+const index = pc.index('group-project-ai');
 
 let counter = 0;
-
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request on ${req.url}`); // Logs the method and path of all incoming requests
+  next();
+});
+
+
+app.use(cors());
 app.use(express.static('public'));
+
+// Temporary storage for extracted text, keyed by socket ID
+const extractedTextStorage = {};
 
 io.on('connection', (socket) => {
   console.log('a user connected');
 
+  // Endpoint to handle file upload directly via sockets
+  socket.on('file upload', async (fileData, callback) => {
+    const text = await extractText(fileData.path, fileData.mimetype);
+    if (text) {
+      extractedTextStorage[socket.id] = text; // Store extracted text
+      callback({ success: true, message: 'Text extracted successfully', text: text });
+    } else {
+      callback({ success: false, message: 'Failed to extract text' });
+    }
+  });
+
   socket.on('chat message', async (message) => {
     try {
-      // Search for similar past messages or topics
+      // Use any stored text for this user as context
+      const context = extractedTextStorage[socket.id] || '';
+      delete extractedTextStorage[socket.id]; // Clear after use
+
       const similarResponses = await getSimilarResponses(message);
-      let context = '';
-  
       if (similarResponses.length > 0) {
-        // If similar responses are found, use them as context for the GPT model
-        context = similarResponses.join('\n');
+        context += '\n' + similarResponses.join('\n');
       }
-      
-      const response = await getResponse(message, context);  // Pass the context to the GPT model
+
+      const response = await getResponse(message, context);
       socket.emit('chat message', response);
     } catch (error) {
       console.error('Error:', error);
       socket.emit('chat message', 'Error: An error occurred on the server.');
     }
   });
-  
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    delete extractedTextStorage[socket.id]; // Ensure clean-up on disconnect
   });
 });
+
+//code to handle the upload file
+app.post('/upload', upload.single('file'), async (req, res) => {
+  console.log('/upload route hit');
+  if (!req.file) {
+      console.log('No file part in the request.');
+      return res.status(400).send('No file uploaded.');
+  }
+  console.log(`File uploaded: ${req.file.filename}`); // Log the filename of the uploaded file
+
+  try {
+      const extractedText = await extractText(req.file.path, req.file.mimetype);
+      if (extractedText) {
+          console.log('Text extraction successful');
+          io.to(req.body.socketId).emit('file text', extractedText); // Emit to specific socket ID
+          res.send({ message: 'File processed successfully.', text: extractedText });
+      } else {
+          console.log('Failed to extract text from file');
+          res.status(500).send('Failed to process the file.');
+      }
+  } catch (error) {
+      console.error('Error processing file:', error);
+      res.status(500).send('Server error processing file');
+  }
+});
+
+
 
 // function to get response from the model
 async function getResponse(message, context = '') {  // Accept context as a parameter
   const config = {
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4-turbo',
     stream: true,
     messages: [
       {
