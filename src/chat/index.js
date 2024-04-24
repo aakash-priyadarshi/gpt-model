@@ -102,7 +102,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 // function to get response from the model
 async function getResponse(message, context = '') {  // Accept context as a parameter
   const config = {
-    model: 'gpt-4-turbo',
+    model: 'ft:gpt-3.5-turbo-0125:personal:group-project:9GVOiDii',
     stream: true,
     messages: [
       {
