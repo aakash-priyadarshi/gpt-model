@@ -39,7 +39,7 @@ Open `localhost:3001` in your browser to use the chat application.
 After starting the server, open your browser and navigate to http://localhost:3001 to interact with the chatbot. You can send text messages or upload files to augment the chat context.
 
 ## Docker
-This project can be containerized using Docker. The provided Dockerfile outlines the steps to create an image of the chatbot application.
+This project can be containerized using Docker. The provided Dockerfile outlines the steps to create an image of the chatbot application. We have one here [https://hub.docker.com/repository/docker/aakashm301/chat_bot/general](https://hub.docker.com/repository/docker/aakashm301/chat_bot/general)
 
 ## Contributing
 Contributions are welcome! For major changes, please open an issue first to discuss what you would like to change.
