@@ -165,17 +165,9 @@ socket.on('chat message', function(msg) {
         $('#messages').scrollTop($('#messages')[0].scrollHeight);
       }
     });
-    </script>
+    
     
 
-    function likeFunction(button) {
-      $(button).toggleClass('liked');
-    }
-
-    function dislikeFunction(button) {
-      $(button).toggleClass('disliked');
-    }
-    
     function Create_Chart() {
       $('#messages').append($('<div class="chat_message chatbot_output"><li><canvas id="chart"></canvas></li></div>'));
       const ctx = document.getElementById('chart');
