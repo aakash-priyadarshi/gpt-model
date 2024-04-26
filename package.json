@@ -2,15 +2,18 @@
   "name": "chatgpt-app",
   "version": "1.0.0",
   "description": "A simple GPT chat application",
-  "main": "src/index.js",
+  "main": "src/chat/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/chat/index.js"
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^2.2.0",
     "@xenova/transformers": "^2.17.0",
     "axios": "^1.6.8",
     "dotenv": "^16.4.5",
+    "mongodb": "^6.5.0",
+    "mongoose": "^8.3.2",
+    "moongose": "^1.0.0",
     "multer": "^1.4.5-lts.1",
     "openai": "4.29.0",
     "pdf-parse": "^1.1.1",

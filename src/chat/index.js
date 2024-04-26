@@ -5,6 +5,9 @@ const { Server } = require('socket.io');
 const { OpenAI } = require('openai');
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { upload, extractText } = require('./fileHandler'); // Import the file handling module
+const { saveFeedback } = require('./feedback');
+const bodyParser = require('body-parser');
+
 require('dotenv').config();
 
 const openai = new OpenAI({
@@ -21,6 +24,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
+//optional function, can remove this one
 app.use((req, res, next) => {
   console.log(`Received ${req.method} request on ${req.url}`); // Logs the method and path of all incoming requests
   next();
@@ -29,9 +33,9 @@ app.use((req, res, next) => {
 
 app.use(cors());
 app.use(express.static('public'));
-
+app.use(bodyParser.json());
 // Temporary storage for extracted text, keyed by socket ID
-const extractedTextStorage = {};
+let extractedTextStorage = {};
 
 io.on('connection', (socket) => {
   console.log('a user connected');
@@ -48,6 +52,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat message', async (message) => {
+    console.log("Received message on server:", message);
     try {
       // Use any stored text for this user as context
       const context = extractedTextStorage[socket.id] || '';
@@ -97,6 +102,28 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+
+// code to handle feedback
+app.post('/feedback', async (req, res) => {
+  const { session_id, question, response, feedback } = req.body;
+
+  if (typeof session_id !== 'string' || typeof question !== 'string' || typeof response !== 'string' || typeof feedback !== 'boolean') {
+    return res.status(400).send('Invalid request data');
+  }
+
+  try {
+    const result = await saveFeedback({ session_id, question, response, feedback });
+
+    if (result.success) {
+      res.status(201).send(result.message);
+    } else {
+      res.status(500).send(result.message);
+    }
+  } catch (error) {
+    console.error('Server error when processing feedback:', error);
+    res.status(500).send('Server error processing feedback');
+  }
+});
 
 
 // function to get response from the model

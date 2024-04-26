@@ -27,111 +27,144 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://kit.fontawesome.com/4ed26f18fb.js" crossorigin="anonymous"></script>
   <script>
-    $(function () {
+    var currentQuestion = '';
+    var currentResponse = '';
+    var messageIdCounter = 0;
+    
+    $(function() {
       var socket = io();
-      $('#chat-form').submit(function (e) {
-  e.preventDefault();
-  var fileInput = $('#file-input')[0];
-  if (fileInput.files.length > 0) {
-    // Handle file upload
-    var formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-    formData.append('socketId', socket.id); // Include the socket ID
-    uploadFile(formData);
-  } else {
-    // Send text message
-    var message = $('#m').val().trim();
-    sendMessage(message);
-  }
-});
-
-function uploadFile(formData) {
-  // Show a loading message or spinner
-  $("#button").html("Uploading...").prop('disabled', true);
-  $('#messages').append($('<div class="chat_message user_output" id="uploading"><li>Uploading file...</li></div>'));
-  scrollToBottom();
-
-  $.ajax({
-    url: '/upload',
-    type: 'POST',
-    data: formData,
-    processData: false,
-    contentType: false,
-    success: function(response) {
-      // Remove the uploading message
-      $('#uploading').remove();
-      
-      // If the server responds with the extracted text
-      if (response && response.text) {
-        // Show a confirmation message to the user
-        $('#messages').append($('<div class="chat_message user_output"><li>File uploaded successfully!</li></div>'));
+      $('#chat-form').submit(function(e) {
+        e.preventDefault();
+        var fileInput = $('#file-input')[0];
+        if (fileInput.files.length > 0) {
+          var formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+          formData.append('socketId', socket.id);
+          uploadFile(formData);
+        } else {
+          var message = $('#m').val().trim();
+          sendMessage(message);
+        }
+      });
+    
+      function uploadFile(formData) {
+        $("#button").html("Uploading...").prop('disabled', true);
+        $('#messages').append('<div class="chat_message user_output" id="uploading"><li>Uploading file...</li></div>');
         scrollToBottom();
-        sendMessage(response.text); // Send the extracted text as a message
-      } else {
-        // If the response doesn't have text, something went wrong server-side
-        $('#messages').append($('<div class="chat_message user_output"><li>File uploaded but no text was extracted.</li></div>'));
-        scrollToBottom();
+    
+        $.ajax({
+          url: '/upload',
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            $('#uploading').remove();
+            if (response && response.text) {
+              $('#messages').append('<div class="chat_message user_output"><li>File uploaded successfully!</li></div>');
+              scrollToBottom();
+              sendMessage(response.text);
+            } else {
+              $('#messages').append('<div class="chat_message user_output"><li>File uploaded but no text was extracted.</li></div>');
+              scrollToBottom();
+            }
+            $("#button").html("Send").prop('disabled', false);
+            $('#file-input').val('');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            $('#uploading').remove();
+            $('#messages').append('<div class="chat_message user_output"><li>File upload failed: ' + errorThrown + '</li></div>');
+            scrollToBottom();
+            $("#button").html("Send").prop('disabled', false);
+          }
+        });
       }
-      
-      $("#button").html("Send").prop('disabled', false);
-      $('#file-input').val(''); // Clear the file input
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      // Remove the uploading message
-      $('#uploading').remove();
-      
-      // Show an error message
-      $('#messages').append($('<div class="chat_message user_output"><li>File upload failed: ' + errorThrown + '</li></div>'));
-      scrollToBottom();
-      
-      $("#button").html("Send").prop('disabled', false);
-      console.error('File upload failed:', textStatus, errorThrown);
-      alert('File upload failed.');
-    }
-  });
-}
-
-function sendMessage(message) {
+    
+      function sendMessage(message) {
   if (message) {
+    currentQuestion = message; // Update current question
+    console.log("Sending message:", message);
     $("#button").html("Loading...").prop('disabled', true);
-    $('#messages').append($('<div class="chat_message user_output"><li>' + message + '</li></div>'));
-    scrollToBottom();
+    var messageId = ++messageIdCounter; // Increment here for the outgoing message
+    $('#messages').append('<div class="chat_message user_output" data-message-id="' + messageId + '"><li>' + message + '</li></div>');
     socket.emit('chat message', message);
     $('#m').val('');
+    scrollToBottom();
+    $("#button").html("Send").prop('disabled', false);
   }
 }
 
-      socket.on('chat message', function (msg) {
-        if (msg) {
-          $('#messages').append($('<div class="chat_message chatbot_output"><li>' + msg + 
-          '<span class="thumbs-icons">' +
-          '<i onclick="likeFunction(this)" class="fa fa-thumbs-up"></i>' +
-          '<i onclick="dislikeFunction(this)" class="fa fa-thumbs-down"></i>' +
-          '</span></li></div>'));
-        } else {
-          $('#messages').append($('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>'));
-        }
-        $("#button").html("Send").prop('disabled', false);
-        scrollToBottom();
-      });
+    
+socket.on('chat message', function(msg) {
+  console.log('Received message:', msg);
+  if (msg) {
+    currentResponse = msg; // Update current response
+    // No increment here, just use the last messageIdCounter value
+    $('#messages').append(
+      `<div class="chat_message chatbot_output" data-message-id="${messageIdCounter}">
+        <li>
+          ${msg}
+          <span class="thumbs-icons">
+            <i class="fa fa-thumbs-up like-btn"></i>
+            <i class="fa fa-thumbs-down dislike-btn"></i>
+          </span>
+        </li>
+      </div>`
+    );
+    scrollToBottom();
+  } else {
+    $('#messages').append('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>');
+  }
+  $("#button").html("Send").prop('disabled', false);
+});
 
+    
+      $('#messages').on('click', '.like-btn', function() {
+        toggleFeedback(this, true);
+      });
+    
+      $('#messages').on('click', '.dislike-btn', function() {
+        toggleFeedback(this, false);
+      });
+    
+      function toggleFeedback(element, isLiked) {
+        var $message = $(element).closest('.chat_message');
+        var messageId = $message.data('messageId');
+        var isAlreadyActive = $(element).hasClass(isLiked ? 'liked' : 'disliked');
+        $(element).siblings().removeClass('liked disliked');
+        $(element).toggleClass(isLiked ? 'liked' : 'disliked', !isAlreadyActive);
+        if (!isAlreadyActive) {
+          sendFeedback(messageId, isLiked);
+        }
+      }
+    
+      function sendFeedback(messageId, feedback) {
+        $.ajax({
+          url: '/feedback',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            session_id: messageId.toString(),
+            question: currentQuestion,
+            response: currentResponse,
+            feedback: feedback
+          }),
+          success: function(response) {
+            console.log('Feedback sent successfully');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Failed to send feedback:', textStatus, errorThrown);
+            $('#messages').append('<div class="chat_message user_output"><li>Feedback submission failed. Please try again.</li></div>');
+            scrollToBottom();
+          }
+        });
+      }
+    
       function scrollToBottom() {
         $('#messages').scrollTop($('#messages')[0].scrollHeight);
       }
-
-      socket.on('disconnect', function () {
-        $("#button").html("Send").prop('disabled', false);
-        $('#messages').append($('<div class="chat_message chatbot_output"><li>Error: Connection to server lost. Please refresh the page.</li></div>'));
-      });
     });
-
-    function likeFunction(button) {
-      $(button).toggleClass('liked');
-    }
-
-    function dislikeFunction(button) {
-      $(button).toggleClass('disliked');
-    }
-  </script>
+    </script>
+    
 </body>
 </html>
