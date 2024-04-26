@@ -26,6 +26,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://kit.fontawesome.com/4ed26f18fb.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     var currentQuestion = '';
     var currentResponse = '';
@@ -166,5 +167,51 @@ socket.on('chat message', function(msg) {
     });
     </script>
     
+
+    function likeFunction(button) {
+      $(button).toggleClass('liked');
+    }
+
+    function dislikeFunction(button) {
+      $(button).toggleClass('disliked');
+    }
+    
+    function Create_Chart() {
+      $('#messages').append($('<div class="chat_message chatbot_output"><li><canvas id="chart"></canvas></li></div>'));
+      const ctx = document.getElementById('chart');
+      new Chart(
+        ctx, {
+          type: 'bar', //can change to pie for a pie chart
+          data: {
+            labels: ['one', 'two', 'three', 'four', 'five', 'six'],
+            datasets: 
+            [
+              {
+                label: 'FirstData',
+                data: [12, 19, 3, 5, 2, 3],
+                borderWidth: 1
+              },
+              {
+                label: 'SecondData',
+                data: [1,2,3,4,5,6],
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            scales: {
+              x: {
+                stacked: true 
+              },
+              y: {
+                beginAtZero: true,
+                stacked: true
+              }
+            }
+          }
+        }
+      );
+    };
+  </script>
 </body>
 </html>
