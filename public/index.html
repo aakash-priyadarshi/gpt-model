@@ -128,16 +128,39 @@ socket.on('chat message', function(msg) {
         toggleFeedback(this, false);
       });
     
-      function toggleFeedback(element, isLiked) {
-        var $message = $(element).closest('.chat_message');
-        var messageId = $message.data('messageId');
-        var isAlreadyActive = $(element).hasClass(isLiked ? 'liked' : 'disliked');
-        $(element).siblings().removeClass('liked disliked');
-        $(element).toggleClass(isLiked ? 'liked' : 'disliked', !isAlreadyActive);
-        if (!isAlreadyActive) {
-          sendFeedback(messageId, isLiked);
-        }
-      }
+      $('#messages').on('click', '.like-btn', function() {
+  toggleFeedback(this, true);
+});
+
+$('#messages').on('click', '.dislike-btn', function() {
+  toggleFeedback(this, false);
+});
+
+function toggleFeedback(element, isLiked) {
+  var $icon = $(element);
+  var $message = $icon.closest('.chat_message');
+  var messageId = $message.data('messageId');
+  var isAlreadyActive = $icon.hasClass(isLiked ? 'liked' : 'disliked');
+
+  // First, remove any feedback classes and icons from both buttons
+  $icon.siblings().addBack().removeClass('liked disliked fa-check fa-times fa-thumbs-up fa-thumbs-down');
+
+  // Then add the appropriate classes based on the user's action
+  if (!isAlreadyActive) {
+    $icon.addClass(isLiked ? 'liked fa-check' : 'disliked fa-times');
+    sendFeedback(messageId, isLiked);
+  } else {
+    // If already active, just revert to the original thumbs icons
+    $icon.addClass(isLiked ? 'fa-thumbs-up' : 'fa-thumbs-down');
+  }
+}
+
+
+// Feedback reset function
+function resetFeedbackIcons() {
+  $('.like-btn').removeClass('fa-check liked').addClass('fa-thumbs-up');
+  $('.dislike-btn').removeClass('fa-times disliked').addClass('fa-thumbs-down');
+}
     
       function sendFeedback(messageId, feedback) {
         $.ajax({
