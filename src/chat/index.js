@@ -129,7 +129,7 @@ app.post('/feedback', async (req, res) => {
 // function to get response from the model
 async function getResponse(message, context = '') {  // Accept context as a parameter
   const config = {
-    model: 'ft:gpt-3.5-turbo-0125:personal:group-project:9GVOiDii',
+    model: 'gpt-3.5-turbo-0125',
     stream: true,
     messages: [
       {
