@@ -81,43 +81,58 @@
         });
       }
     
-      function sendMessage(message) {
-  if (message) {
-    currentQuestion = message; // Update current question
-    console.log("Sending message:", message);
-    $("#button").html("Loading...").prop('disabled', true);
-    var messageId = ++messageIdCounter; // Increment here for the outgoing message
-    $('#messages').append('<div class="chat_message user_output" data-message-id="' + messageId + '"><li>' + message + '</li></div>');
-    socket.emit('chat message', message);
-    $('#m').val('');
-    scrollToBottom();
-    $("#button").html("Send").prop('disabled', false);
-  }
-}
 
-    
-socket.on('chat message', function(msg) {
-  console.log('Received message:', msg);
-  if (msg) {
-    currentResponse = msg; // Update current response
-    // No increment here, just use the last messageIdCounter value
-    $('#messages').append(
-      `<div class="chat_message chatbot_output" data-message-id="${messageIdCounter}">
-        <li>
-          ${msg}
-          <span class="thumbs-icons">
-            <i class="fa fa-thumbs-up like-btn"></i>
-            <i class="fa fa-thumbs-down dislike-btn"></i>
-          </span>
-        </li>
-      </div>`
-    );
-    scrollToBottom();
-  } else {
-    $('#messages').append('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>');
-  }
-  $("#button").html("Send").prop('disabled', false);
-});
+      function sendMessage(message) {
+        if (message) {
+          currentQuestion = message; // Update current question
+          console.log("Sending message:", message);
+          $("#button").html("Loading...").prop('disabled', true);
+          var messageId = ++messageIdCounter; // Increment here for the outgoing message
+      
+          // Create an unordered list for the message
+          var messageList = $('<ul class="chat_message user_output" data-message-id="' + messageId + '"></ul>');
+      
+          // Split the message into lines and append each line as a separate <li> element
+          var lines = message.split('\n');
+          for (var i = 0; i < lines.length; i++) {
+            messageList.append('<li>' + lines[i] + '</li>');
+          }
+      
+          $('#messages').append(messageList);
+          socket.emit('chat message', message);
+          $('#m').val('');
+          scrollToBottom();
+          $("#button").html("Send").prop('disabled', false);
+        }
+      }
+      
+      socket.on('chat message', function(msg) {
+        console.log('Received message:', msg);
+        if (msg) {
+          currentResponse = msg; // Update current response
+      
+          // Create an unordered list for the message
+          var messageList = $('<div class="chat_message chatbot_output" data-message-id="' + messageIdCounter + '"></div>');
+      
+          // Split the message into lines and append each line as a separate <li> element
+          var lines = msg.split('\n');
+          for (var i = 0; i < lines.length; i++) {
+            messageList.append('<ul><li>' + lines[i] + '</li></ul>');
+          }
+      
+          // Add the like and dislike buttons
+          messageList.append('<span class="thumbs-icons"><i class="fa fa-thumbs-up like-btn"></i><i class="fa fa-thumbs-down dislike-btn"></i></span>');
+      
+          $('#messages').append(messageList);
+          scrollToBottom();
+        } else {
+          $('#messages').append('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>');
+        }
+        $("#button").html("Send").prop('disabled', false);
+      });
+
+
+
 
     
       $('#messages').on('click', '.like-btn', function() {
