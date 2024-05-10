@@ -22,7 +22,8 @@
     "readline-sync": "1.4.10",
     "socket.io": "4.7.4",
     "tesseract.js": "^5.0.5",
-    "textract": "^2.5.0"
+    "textract": "^2.5.0",
+    "tokenizers": "^0.13.3"
   },
   "keywords": [
     "chat",

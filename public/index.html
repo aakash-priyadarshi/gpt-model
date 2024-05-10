@@ -95,16 +95,39 @@
   }
 }
 
-    
-socket.on('chat message', function(msg) {
-  console.log('Received message:', msg);
-  if (msg) {
-    currentResponse = msg; // Update current response
-    // No increment here, just use the last messageIdCounter value
+
+
+// socket.on('chat message', function(msg) {
+//   console.log('Received message:', msg);
+//   if (msg) {
+//     currentResponse = msg; // Update current response
+//     // No increment here, just use the last messageIdCounter value
+//     $('#messages').append(
+//       `<div class="chat_message chatbot_output" data-message-id="${messageIdCounter}">
+//         <li>
+//           ${msg}
+//           <span class="thumbs-icons">
+//             <i class="fa fa-thumbs-up like-btn"></i>
+//             <i class="fa fa-thumbs-down dislike-btn"></i>
+//           </span>
+//         </li>
+//       </div>`
+//     );
+//     scrollToBottom();
+//   } else {
+//     $('#messages').append('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>');
+//   }
+//   $("#button").html("Send").prop('disabled', false);
+// });
+
+socket.on('chat message', function(data) {
+  console.log('Received message:', data);
+  if (data.text) { // Make sure you are correctly referencing `text` from `data`
+    currentResponse = data.text; // Update current response
+    const topicsString = data.topics ? data.topics.join(', ') : 'No topics found'; // Prepare topics string if available
     $('#messages').append(
       `<div class="chat_message chatbot_output" data-message-id="${messageIdCounter}">
-        <li>
-          ${msg}
+        <li>${data.text}<br><strong>Topics:</strong> ${topicsString}
           <span class="thumbs-icons">
             <i class="fa fa-thumbs-up like-btn"></i>
             <i class="fa fa-thumbs-down dislike-btn"></i>
@@ -113,10 +136,10 @@ socket.on('chat message', function(msg) {
       </div>`
     );
     scrollToBottom();
+    $("#button").html("Send").prop('disabled', false);
   } else {
     $('#messages').append('<div class="chat_message chatbot_output"><li>Error: The server response is empty.</li></div>');
   }
-  $("#button").html("Send").prop('disabled', false);
 });
 
     

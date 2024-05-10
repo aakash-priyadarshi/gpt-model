@@ -54,11 +54,6 @@ io.on('connection', (socket) => {
   socket.on('chat message', async (message) => {
     console.log("Received message on server:", message);
     try {
-      // Classify the incoming message for topics
-      const topics = ["technology", "health", "finance", "education", "entertainment"]; // change the topic you want the model to search for.
-      const topicResults = await classifyText(message, topics);
-
-
       // Use any stored text for this user as context
       const context = extractedTextStorage[socket.id] || '';
       delete extractedTextStorage[socket.id]; // Clear after use
